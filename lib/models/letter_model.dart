@@ -95,6 +95,10 @@ class LetterModel {
     final List<String> words = cleaned.split(RegExp(r'\s+'));
     for (final String word in words) {
       if (targets.contains(word)) return true;
+            final String own = normalizeArabic(arabic);
+      if (!const <String>{'ا', 'و', 'ي', 'ه'}.contains(own) && word.length <= 4 && word.contains(own)) {
+        return true;
+      }
       if (word.length >= 3) {
         for (final String target in targets) {
           if (target.length >= 3 && _distance(word, target) <= 1) return true;
