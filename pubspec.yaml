@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audioplayers: ^5.2.1
+  audioplayers: ^6.1.0
   permission_handler: ^11.3.1
   speech_to_text: ^6.6.2
   shared_preferences: ^2.3.2
