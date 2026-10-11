@@ -1,0 +1,74 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v4
+
+      - name: Java 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Flutter 3.24.5 kur
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+
+      - name: Flutter sürümünü göster
+        run: flutter --version
+
+      - name: Android iskeletini oluştur
+        run: |
+          cp android/app/src/main/AndroidManifest.xml /tmp/AndroidManifest.xml
+          cp android/gradle.properties /tmp/gradle.properties
+          flutter create --platforms=android --org com.kurani --project-name kurani_ogreniyorum /tmp/scaffold
+          rm -rf android
+          cp -r /tmp/scaffold/android android
+          cp /tmp/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          cp /tmp/gradle.properties android/gradle.properties
+          mkdir -p assets/audio
+
+      - name: Kotlin sürümünü güncelle
+        run: |
+          sed -i 's/\(org\.jetbrains\.kotlin\.android" version "\)[0-9.]*"/\11.9.24"/' android/settings.gradle || true
+          sed -i "s/ext.kotlin_version = '[0-9.]*'/ext.kotlin_version = '1.9.24'/" android/build.gradle || true
+          grep -n "kotlin" android/settings.gradle || true
+          cat android/gradle.properties
+
+      - name: Bağımlılıkları indir
+        run: flutter pub get
+
+      - name: APK derle
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: APK'yı Artifact olarak yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kurani-Ogreniyorum-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+      - name: APK'yı doğrudan indirme bağlantısı olarak yayınla
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Kur'an'ı Öğreniyorum APK (derleme ${{ github.run_number }})
+          files: build/app/outputs/flutter-apk/app-release.apk
