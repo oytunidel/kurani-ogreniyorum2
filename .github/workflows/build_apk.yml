@@ -54,7 +54,8 @@ jobs:
 
       - name: Bağımlılıkları indir
         run: flutter pub get
-
+      - name: Uygulama simgesini oluştur
+        run: dart run flutter_launcher_icons
       - name: APK derle
         run: flutter build apk --release --no-tree-shake-icons
 
