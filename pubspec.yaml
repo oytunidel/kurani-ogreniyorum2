@@ -1,0 +1,22 @@
+name: kurani_ogreniyorum
+description: Kur'an'ı Öğreniyorum - Diyanet Elif-Bâ metodolojisiyle oyunlaştırılmış Kur'an okuma öğrenme uygulaması.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  audioplayers: ^5.2.1
+  permission_handler: ^11.3.1
+  speech_to_text: ^6.6.2
+  shared_preferences: ^2.3.2
+  confetti: ^0.7.0
+  cupertino_icons: ^1.0.8
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
