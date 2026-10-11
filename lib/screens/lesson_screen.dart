@@ -73,6 +73,7 @@ class _LessonScreenState extends State<LessonScreen> {
   String _heard = '';
   bool _hadFail = false;
   int _letterXp = 0;
+  int _noMatchCount = 0;
 
   bool _speechChecked = false;
   bool _speechReady = false;
@@ -113,6 +114,7 @@ class _LessonScreenState extends State<LessonScreen> {
       _notice = '';
       _listening = false;
       _resolvedThisTry = false;
+      _noMatchCount = 0;
       if (stage == LessonStage.recognize) {
         _options = _letter.buildOptions(_random);
       }
@@ -209,6 +211,10 @@ class _LessonScreenState extends State<LessonScreen> {
   void _skipSpeak() {
     _hadFail = true;
     _progress.addReview(_letter.order);
+    _finishLetter();
+  }
+
+  void _selfPass() {
     _finishLetter();
   }
 
@@ -312,7 +318,10 @@ class _LessonScreenState extends State<LessonScreen> {
       _resolvedThisTry = true;
       setState(() => _listening = false);
       if (heard.trim().isEmpty) {
-        setState(() => _notice = 'Ses algılanamadı. Mikrofona biraz daha yakın konuşup tekrar dene. Deneme hakkın harcanmadı.');
+        setState(() {
+          _noMatchCount += 1;
+          _notice = 'Ses algılanamadı. Harfi Arapça adıyla, net ve mikrofona yakın oku. Deneme hakkın harcanmadı.';
+        });
       } else {
         _registerWrong();
       }
@@ -332,7 +341,8 @@ class _LessonScreenState extends State<LessonScreen> {
     setState(() {
       _listening = false;
       if (message.contains('no_match') || message.contains('speech_timeout')) {
-        _notice = 'Ses anlaşılamadı. Tekrar dene; deneme hakkın harcanmadı.';
+        _noMatchCount += 1;
+        _notice = 'Ses anlaşılamadı. Harfi Arapça adıyla (örneğin ${_letter.accepts.first}) net oku; deneme hakkın harcanmadı.';
       } else if (message.contains('permission')) {
         _micDenied = true;
         _notice = 'Mikrofon izni gerekiyor.';
@@ -714,9 +724,11 @@ class _LessonScreenState extends State<LessonScreen> {
       children: [
         Text('Telaffuz', textAlign: TextAlign.center, style: _t(14, color: AppColors.blueDark, weight: FontWeight.w800)),
         const SizedBox(height: 8),
-        Text('Mikrofona dokun ve “${l.name}” harfini oku', textAlign: TextAlign.center, style: _t(24, weight: FontWeight.w900, height: 1.25)),
+        Text('Mikrofona dokun ve “${l.name}” harfini Arapça adıyla oku', textAlign: TextAlign.center, style: _t(22, weight: FontWeight.w900, height: 1.25)),
         const SizedBox(height: 10),
         Center(child: Text(l.arabic, style: _t(90, height: 1.2))),
+        Center(child: Text('Şöyle oku: ${l.accepts.first}', style: _t(26, color: AppColors.blueDark, weight: FontWeight.w800))),
+        const SizedBox(height: 6),
         _listenButton(),
         const SizedBox(height: 14),
         _attemptsRow(),
@@ -768,6 +780,21 @@ class _LessonScreenState extends State<LessonScreen> {
           ),
         ],
         _noticeBox(),
+        if (_noMatchCount >= 2 && _answer == AnswerState.idle) ...[
+          const SizedBox(height: 14),
+          Center(
+            child: Button3D(
+              label: 'OKUDUM, DEVAM ET',
+              icon: Icons.check_rounded,
+              color: AppColors.blue,
+              shadowColor: AppColors.blueDark,
+              expand: false,
+              height: 46,
+              fontSize: 14,
+              onTap: _selfPass,
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         Text('Mahreç ipucu: ${l.group.title}', textAlign: TextAlign.center, style: _t(13, color: AppColors.textLight, weight: FontWeight.w600)),
       ],
